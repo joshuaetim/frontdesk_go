@@ -4,10 +4,10 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	Firstname	string	`json:"first_name" binding:"required"`
-	Lastname	string	`json:"last_name" binding:"required"`
+	Firstname	string	`json:"first_name"`
+	Lastname	string	`json:"last_name"`
 	Email		string	`json:"email" binding:"required,email" gorm:"unique"`
-	Password	string	`json:"password"`
+	Password	string	`json:"password" binding:"required"`
 	Company		string	`json:"company"`
 	Staff		[]Staff
 	Visitors	[]Visitor
