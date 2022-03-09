@@ -5,7 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/joshuaetim/frontdesk/domain/model"
-	"github.com/joshuaetim/frontdesk//infrastructure"
+	"github.com/joshuaetim/frontdesk/infrastructure"
 	"github.com/stretchr/testify/assert"
 )
 
