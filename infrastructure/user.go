@@ -10,9 +10,9 @@ type userRepo struct {
 	db *gorm.DB 
 }
 
-func NewUserRepository() repository.UserRepository {
+func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &userRepo{
-		db: DB(),
+		db: db,
 	}
 }
 
@@ -39,10 +39,13 @@ func (r *userRepo) GetAllUser() ([]model.User, error) {
 
 func (r *userRepo) UpdateUser(user model.User) (model.User, error) {
 	// check if exists
-	if err := r.db.First(&user).Error; err != nil {
+	var uModel model.User = user
+	if err := r.db.First(&uModel).Error; err != nil {
 		return user, err
 	}
-	return user, r.db.Model(&user).Updates(&user).Error
+	err := r.db.Debug().Model(&user).Updates(&user).Error
+	user, _ = r.GetUser(int(user.ID))
+	return user, err
 }
 
 func (r *userRepo) DeleteUser(user model.User) error {

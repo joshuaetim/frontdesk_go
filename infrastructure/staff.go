@@ -10,9 +10,9 @@ type staffRepo struct {
 	db	*gorm.DB
 }
 
-func NewStaffRepository() repository.StaffRepository {
+func NewStaffRepository(db *gorm.DB) repository.StaffRepository {
 	return &staffRepo{
-		db: DB(),
+		db: db,
 	}
 }
 
@@ -34,10 +34,13 @@ func (r *staffRepo) GetAllStaff() ([]model.Staff, error) {
 
 func (r *staffRepo) UpdateStaff(staff model.Staff) (model.Staff, error) {
 	// exists?
-	if err := r.db.First(&staff).Error; err != nil {
+	var sModel model.Staff = staff
+	if err := r.db.First(&sModel).Error; err != nil {
 		return staff, err
 	}
-	return staff, r.db.Model(&staff).Updates(&staff).Error
+	err := r.db.Debug().Model(&staff).Updates(&staff).Error
+	staff, _ = r.GetStaff(int(staff.ID))
+	return staff, err
 }
 
 func (r *staffRepo) DeleteStaff(staff model.Staff) error {

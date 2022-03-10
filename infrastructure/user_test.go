@@ -1,16 +1,28 @@
 package infrastructure_test
 
 import (
+	"fmt"
+	"path/filepath"
+	"runtime"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/joho/godotenv"
 	"github.com/joshuaetim/frontdesk/domain/model"
 	"github.com/joshuaetim/frontdesk/infrastructure"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
+)
+
+var (
+	_, b, _, _ = runtime.Caller(0)
+	basepath = filepath.Dir(b)
 )
 
 func TestSaveUser(t *testing.T) {
 	initTest(t)
+
+	db := infrastructure.DB()
 
 	var user model.User
 	user.Firstname = "Joshua Etim"
@@ -19,7 +31,7 @@ func TestSaveUser(t *testing.T) {
 	user.Password = "password"
 	user.Company = "Jetimworks"
 
-	ur := infrastructure.NewUserRepository()
+	ur := infrastructure.NewUserRepository(db)
 
 	u, err := ur.AddUser(user)
 	assert.Nil(t, err)
@@ -27,8 +39,10 @@ func TestSaveUser(t *testing.T) {
 	assert.EqualValues(t, u.Firstname, "Joshua Etim")
 }
 
-func TestDuplicateEmail(t *testing.T) {
+func TestUserDuplicateEmail(t *testing.T) {
 	initTest(t)
+	db := infrastructure.DB()
+
 	user1 := model.User{
 		Firstname: "Josh",
 		Lastname: "Etim",
@@ -43,7 +57,7 @@ func TestDuplicateEmail(t *testing.T) {
 		Email: "jetimworks@gmail.com",
 		Password: "password",
 	}
-	ur := infrastructure.NewUserRepository()
+	ur := infrastructure.NewUserRepository(db)
 
 	u1, err := ur.AddUser(user1)
 	assert.Nil(t, err)
@@ -56,16 +70,10 @@ func TestDuplicateEmail(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	initTest(t)
-	user1 := model.User{
-		Firstname: "Josh",
-		Lastname: "Etim",
-		Company: "Jetimworks",
-		Email: "jetimworks@gmail.com",
-		Password: "password",
-	}
-	ur := infrastructure.NewUserRepository()
-	u1, err := ur.AddUser(user1)
-	assert.Nil(t, err)
+	db := infrastructure.DB()
+
+	u1 := seedUser(t, db)
+	ur := infrastructure.NewUserRepository(db)
 
 	u2, err := ur.GetUser(int(u1.ID))
 	assert.Nil(t, err)
@@ -74,25 +82,81 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserByEmail(t *testing.T) {
 	initTest(t)
-	user1 := model.User{
-		Firstname: "Josh",
-		Lastname: "Etim",
-		Company: "Jetimworks",
-		Email: "jetimworks@gmail.com",
-		Password: "password",
-	}
-	ur := infrastructure.NewUserRepository()
-	u1, err := ur.AddUser(user1)
-	assert.Nil(t, err)
+	db := infrastructure.DB()
+
+	u1 := seedUser(t, db)
+	ur := infrastructure.NewUserRepository(db)
 
 	u2, err := ur.GetByEmail(u1.Email)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u1.ID, u2.ID)
 }
 
+func TestGetAllUsers(t *testing.T) {
+	initTest(t)
+	db := infrastructure.DB()
+
+	var users []model.User
+	for i := 0; i < 4; i++ {
+		users = append(users, seedUser(t, db))
+	}
+	fmt.Println(len(users))
+
+	ur := infrastructure.NewUserRepository(db)
+	allUsers, err := ur.GetAllUser()
+	assert.Nil(t, err)
+	assert.EqualValues(t, len(users), len(allUsers))
+}
+
+func TestUpdateUser(t *testing.T) {
+	initTest(t)
+	db := infrastructure.DB()
+
+	u := seedUser(t, db)
+	assert.EqualValues(t, 1, u.ID)
+
+	u.Email = "changed@gmail.com"
+	
+	ur := infrastructure.NewUserRepository(db)
+	u2, err := ur.UpdateUser(u)
+	assert.Nil(t, err)
+
+	assert.EqualValues(t, "changed@gmail.com", u2.Email)
+}
+
+func TestDeleteUser(t *testing.T) {
+	initTest(t)
+	db := infrastructure.DB()
+
+	u := seedUser(t, db)
+
+	ur := infrastructure.NewUserRepository(db)
+
+	err := ur.DeleteUser(u)
+	assert.Nil(t, err)
+
+	u, err = ur.GetUser(int(u.ID))
+	assert.NotNil(t, err)
+}
+
 func initTest(t *testing.T) {
-	err := godotenv.Load("../.env_test")
+	err := godotenv.Load(basepath + "/../" + ".env_test")
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func seedUser(t *testing.T, dbInstance *gorm.DB) model.User {
+	user := model.User{
+		Firstname: gofakeit.FirstName(),
+		Lastname: gofakeit.LastName(),
+		Email: gofakeit.Email(),
+		Password: gofakeit.Word(),
+		Company: gofakeit.Company(),
+	}
+	ur := infrastructure.NewUserRepository(dbInstance)
+	u, err := ur.AddUser(user)
+	assert.Nil(t, err)
+
+	return u
 }
