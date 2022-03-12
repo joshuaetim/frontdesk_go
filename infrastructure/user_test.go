@@ -19,7 +19,7 @@ var (
 	basepath = filepath.Dir(b)
 )
 
-func TestSaveUser(t *testing.T) {
+func TestUserSave(t *testing.T) {
 	initTest(t)
 
 	db := infrastructure.DB()
@@ -68,19 +68,19 @@ func TestUserDuplicateEmail(t *testing.T) {
 	assert.EqualValues(t, u2.ID, 0)
 }
 
-func TestGetUser(t *testing.T) {
+func TestUserGet(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
 
 	u1 := seedUser(t, db)
 	ur := infrastructure.NewUserRepository(db)
 
-	u2, err := ur.GetUser(int(u1.ID))
+	u2, err := ur.GetUser(u1.ID)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u2.Email, u1.Email)
 }
 
-func TestGetUserByEmail(t *testing.T) {
+func TestUserGetByEmail(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
 
@@ -92,7 +92,7 @@ func TestGetUserByEmail(t *testing.T) {
 	assert.EqualValues(t, u1.ID, u2.ID)
 }
 
-func TestGetAllUsers(t *testing.T) {
+func TestUserGetAll(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
 
@@ -108,7 +108,7 @@ func TestGetAllUsers(t *testing.T) {
 	assert.EqualValues(t, len(users), len(allUsers))
 }
 
-func TestUpdateUser(t *testing.T) {
+func TestUserUpdate(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
 
@@ -124,7 +124,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.EqualValues(t, "changed@gmail.com", u2.Email)
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestUserDelete(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
 
@@ -135,8 +135,28 @@ func TestDeleteUser(t *testing.T) {
 	err := ur.DeleteUser(u)
 	assert.Nil(t, err)
 
-	u, err = ur.GetUser(int(u.ID))
+	u, err = ur.GetUser(u.ID)
 	assert.NotNil(t, err)
+}
+
+func TestUserGetStaff(t *testing.T) {
+	initTest(t)
+	db := infrastructure.DB()
+
+	u := seedUser(t, db)
+	var userStaff []model.Staff
+
+	for i := 0; i < 4; i++ {
+		staff := seedStaff(t, db, u.ID)
+		userStaff = append(userStaff, staff)
+	}
+
+	ur := infrastructure.NewUserRepository(db)
+	userStaffGet, err := ur.GetUserStaff(u.ID)
+	assert.Nil(t, err)
+
+	assert.EqualValues(t, len(userStaff), len(userStaffGet))
+	assert.EqualValues(t, userStaffGet[1].UserID, u.ID)
 }
 
 func initTest(t *testing.T) {

@@ -22,7 +22,7 @@ func (r *userRepo) AddUser(user model.User) (model.User, error) {
 	return user, r.db.Create(&user).Error
 }
 
-func (r *userRepo) GetUser(id int) (model.User, error) {
+func (r *userRepo) GetUser(id uint) (model.User, error) {
 	var user model.User
 	return user, r.db.First(&user, id).Error
 }
@@ -43,8 +43,8 @@ func (r *userRepo) UpdateUser(user model.User) (model.User, error) {
 	if err := r.db.First(&uModel).Error; err != nil {
 		return user, err
 	}
-	err := r.db.Debug().Model(&user).Updates(&user).Error
-	user, _ = r.GetUser(int(user.ID))
+	err := r.db.Model(&user).Updates(&user).Error
+	user, _ = r.GetUser(user.ID)
 	return user, err
 }
 
@@ -54,4 +54,9 @@ func (r *userRepo) DeleteUser(user model.User) error {
 		return err
 	}
 	return r.db.Delete(&user).Error
+}
+
+func (r *userRepo) GetUserStaff(id uint) ([]model.Staff, error) {
+	var userStaff []model.Staff
+	return userStaff, r.db.Find(&userStaff, "user_id = ?", id).Error
 }

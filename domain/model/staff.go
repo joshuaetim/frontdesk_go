@@ -10,7 +10,7 @@ type Staff struct {
 	Phone		string	`json:"phone"`
 	Address		string	`json:"address"`
 	Status		string	`json:"status"`
-	UserID		int
+	UserID		uint
 	User		User
 	Visitors	[]Visitor
 }

@@ -22,7 +22,7 @@ func (r *staffRepo) AddStaff(staff model.Staff) (model.Staff, error) {
 	return staff, r.db.Create(&staff).Error
 }
 
-func (r *staffRepo) GetStaff(id int) (model.Staff, error) {
+func (r *staffRepo) GetStaff(id uint) (model.Staff, error) {
 	var staff model.Staff
 	return staff, r.db.First(&staff, id).Error
 }
@@ -38,8 +38,8 @@ func (r *staffRepo) UpdateStaff(staff model.Staff) (model.Staff, error) {
 	if err := r.db.First(&sModel).Error; err != nil {
 		return staff, err
 	}
-	err := r.db.Debug().Model(&staff).Updates(&staff).Error
-	staff, _ = r.GetStaff(int(staff.ID))
+	err := r.db.Model(&staff).Updates(&staff).Error
+	staff, _ = r.GetStaff(staff.ID)
 	return staff, err
 }
 

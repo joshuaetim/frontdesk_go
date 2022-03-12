@@ -10,9 +10,9 @@ type Visitor struct {
 	Phone		string	`json:"phone"`
 	Occupation	string	`json:"occupation"`
 	Note		string	`json:"note"`
-	StaffID		int
+	StaffID		uint
 	Staff		Staff
-	UserID		int
+	UserID		uint
 	User		User
 }
 
