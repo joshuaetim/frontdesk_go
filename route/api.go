@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joshuaetim/frontdesk/handler"
 	"github.com/joshuaetim/frontdesk/infrastructure"
+	"github.com/joshuaetim/frontdesk/middleware"
 )
 
 func RunAPI(address string) error {
@@ -20,9 +21,12 @@ func RunAPI(address string) error {
 	})
 	apiRoutes := r.Group("/api")
 
-	userRoutes := apiRoutes.Group("/user")
+	userRoutes := apiRoutes.Group("/auth")
 	userRoutes.POST("/register", userHandler.CreateUser)
 	userRoutes.POST("/login", userHandler.SignInUser)
+
+	userProtectedRoutes := apiRoutes.Group("/user", middleware.AuthorizeJWT())
+	userProtectedRoutes.GET("/:id", userHandler.GetUser)
 
 	return r.Run(address)
 }

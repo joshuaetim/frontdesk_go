@@ -62,7 +62,13 @@ func (uh UserHandler) SignInUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": dbUser})
+	token, err := GenerateToken(dbUser.ID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not generate token: " + err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": dbUser, "token": token})
 }
 
 func (uh UserHandler) GetUser(ctx *gin.Context) {

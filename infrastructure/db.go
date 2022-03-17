@@ -14,7 +14,7 @@ import (
 
 var (
 	_, b, _, _ = runtime.Caller(0)
-	basepath = filepath.Dir(b)
+	basepath   = filepath.Dir(b)
 )
 
 func DB() *gorm.DB {
@@ -25,7 +25,7 @@ func DB() *gorm.DB {
 		if mem := os.Getenv("SQLITE_MEMORY"); mem != "" {
 			dialect = sqlite.Open(mem)
 		} else {
-			dialect = sqlite.Open(basepath + "/../" + dsn)
+			dialect = sqlite.Open(dsn)
 		}
 	} else {
 		dialect = mysql.Open(dsn)
@@ -33,7 +33,7 @@ func DB() *gorm.DB {
 
 	db, err := gorm.Open(dialect, &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error connecting to database (%v): %v", dialect.Name(), err)
+		log.Fatalf("Error connecting to database (%v)(%v): %v", dialect.Name(), dsn, err)
 		return nil
 	}
 
