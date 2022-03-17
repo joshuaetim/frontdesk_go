@@ -60,3 +60,8 @@ func (r *userRepo) GetUserStaff(id uint) ([]model.Staff, error) {
 	var userStaff []model.Staff
 	return userStaff, r.db.Find(&userStaff, "user_id = ?", id).Error
 }
+
+func (r *userRepo) GetUserVisitors(id uint) ([]model.Visitor, error) {
+	var userVisitors []model.Visitor
+	return userVisitors, r.db.Find(&userVisitors, "user_id = ?", id).Error
+}

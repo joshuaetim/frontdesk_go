@@ -24,7 +24,7 @@ func (r *staffRepo) AddStaff(staff model.Staff) (model.Staff, error) {
 
 func (r *staffRepo) GetStaff(id uint) (model.Staff, error) {
 	var staff model.Staff
-	return staff, r.db.First(&staff, id).Error
+	return staff, r.db.Joins("User").First(&staff, id).Error
 }
 
 func (r *staffRepo) GetAllStaff() ([]model.Staff, error) {

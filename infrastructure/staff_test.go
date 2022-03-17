@@ -3,45 +3,52 @@ package infrastructure_test
 import (
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v6"
 	"github.com/joshuaetim/frontdesk/domain/model"
+	"github.com/joshuaetim/frontdesk/factory"
 	"github.com/joshuaetim/frontdesk/infrastructure"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
 func TestStaffSave(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	u := seedUser(t, db)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	staff := seedStaff(t, db, u.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
 	assert.EqualValues(t, 1, staff.ID)
 }
 
 func TestStaffGet(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	staff := seedStaff(t, db, user.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
 
 	sr := infrastructure.NewStaffRepository(db)
 	staffGet, err := sr.GetStaff(staff.ID)
 	assert.Nil(t, err)
 
 	assert.EqualValues(t, staff.ID, staffGet.ID)
+	assert.EqualValues(t, user.ID, staffGet.User.ID)
+
 }
 
 func TestStaffGetAll(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
 	var allStaff []model.Staff
 
 	for i := 1; i <= 4; i++ {
-		staff := seedStaff(t, db, user.ID)
+		staff, err := factory.SeedStaff(db, user.ID)
+		assert.Nil(t, err)
 		allStaff = append(allStaff, staff)
 	}
 
@@ -55,9 +62,11 @@ func TestStaffGetAll(t *testing.T) {
 func TestStaffUpdate(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	staff := seedStaff(t, db, user.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
 
 	sr := infrastructure.NewStaffRepository(db)
 	s1, err := sr.GetStaff(staff.ID)
@@ -74,31 +83,16 @@ func TestStaffUpdate(t *testing.T) {
 func TestStaffDelete(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	staff := seedStaff(t, db, user.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
 
 	sr := infrastructure.NewStaffRepository(db)
-	err := sr.DeleteStaff(staff)
+	err = sr.DeleteStaff(staff)
 	assert.Nil(t, err)
 
 	_, err = sr.GetStaff(staff.ID)
 	assert.NotNil(t, err)
-}
-
-func seedStaff(t *testing.T, dbInstance *gorm.DB, user uint) model.Staff {
-	staff := model.Staff{
-		Firstname: gofakeit.FirstName(),
-		Lastname: gofakeit.LastName(),
-		Email: gofakeit.Email(),
-		Phone: gofakeit.Phone(),
-		Address: gofakeit.Address().Address,
-		Status: "active",
-		UserID: user,
-	}
-	sr := infrastructure.NewStaffRepository(dbInstance)
-	s, err := sr.AddStaff(staff)
-	assert.Nil(t, err)
-
-	return s
 }

@@ -33,7 +33,7 @@ func DB() *gorm.DB {
 
 	db, err := gorm.Open(dialect, &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
+		log.Fatalf("Error connecting to database (%v): %v", dialect.Name(), err)
 		return nil
 	}
 

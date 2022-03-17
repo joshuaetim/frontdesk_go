@@ -24,7 +24,7 @@ func (r *visitorRepo) AddVisitor(visitor model.Visitor) (model.Visitor, error) {
 
 func (r *visitorRepo) GetVisitor(id uint) (model.Visitor, error) {
 	var visitor model.Visitor
-	return visitor, r.db.First(&visitor, id).Error
+	return visitor, r.db.Joins("User").Joins("Staff").First(&visitor, id).Error
 }
 
 func (r *visitorRepo) GetAllVisitor() ([]model.Visitor, error) {

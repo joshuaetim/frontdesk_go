@@ -1,11 +1,16 @@
 package main
 
 import (
-	"path/filepath"
-	"runtime"
+	"log"
+
+	"github.com/joho/godotenv"
+	"github.com/joshuaetim/frontdesk/route"
 )
 
-var (
-	_, b, _, _ = runtime.Caller(0)
-	basepath = filepath.Dir(b)
-)
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Fatal(route.RunAPI(":8080"))
+}

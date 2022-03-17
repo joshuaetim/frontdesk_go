@@ -3,20 +3,23 @@ package infrastructure_test
 import (
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v6"
 	"github.com/joshuaetim/frontdesk/domain/model"
+	"github.com/joshuaetim/frontdesk/factory"
 	"github.com/joshuaetim/frontdesk/infrastructure"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
 func TestVisitorSave(t *testing.T) {
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
-	staff := seedStaff(t, db, user.ID)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	visitor := seedVisitor(t, db, user.ID, staff.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+	assert.Nil(t, err)
 	assert.EqualValues(t, 1, visitor.ID)
 }
 
@@ -24,27 +27,39 @@ func TestVisitorGet(t *testing.T) {
 	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
-	staff := seedStaff(t, db, user.ID)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	visitor := seedVisitor(t, db, user.ID, staff.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+	assert.Nil(t, err)
 
 	vr := infrastructure.NewVisitorRepository(db)
 	v, err := vr.GetVisitor(visitor.ID)
 	assert.Nil(t, err)
 	assert.EqualValues(t, visitor.ID, v.ID)
+
+	// check for join preloading
+	assert.EqualValues(t, user.ID, v.User.ID)
+	assert.EqualValues(t, staff.ID, v.Staff.ID)
 }
 
 func TestVisitorGetAll(t *testing.T) {
 	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
-	staff := seedStaff(t, db, user.ID)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	var visitors []model.Visitor 
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	var visitors []model.Visitor
 	for i := 0; i < 4; i++ {
-		visitor := seedVisitor(t, db, user.ID, staff.ID)
+		visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+		assert.Nil(t, err)
 		visitors = append(visitors, visitor)
 	}
 
@@ -59,10 +74,14 @@ func TestVisitorUpdate(t *testing.T) {
 	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
-	staff := seedStaff(t, db, user.ID)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	visitor := seedVisitor(t, db, user.ID, staff.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+	assert.Nil(t, err)
 
 	vr := infrastructure.NewVisitorRepository(db)
 	visitor.Firstname = "Name Updated"
@@ -76,33 +95,19 @@ func TestVisitorDelete(t *testing.T) {
 	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
-	user := seedUser(t, db)
-	staff := seedStaff(t, db, user.ID)
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
 
-	visitor := seedVisitor(t, db, user.ID, staff.ID)
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+	assert.Nil(t, err)
 
 	vr := infrastructure.NewVisitorRepository(db)
-	err := vr.DeleteVisitor(visitor)
+	err = vr.DeleteVisitor(visitor)
 	assert.Nil(t, err)
 
 	_, err = vr.GetVisitor(visitor.ID)
 	assert.NotNil(t, err)
-}
-
-func seedVisitor(t *testing.T, dbInstance *gorm.DB, user, staff uint) model.Visitor {
-	visitor := model.Visitor{
-		Firstname: gofakeit.FirstName(),
-		Lastname: gofakeit.LastName(),
-		Email: gofakeit.Email(),
-		Phone: gofakeit.Phone(),
-		Occupation: gofakeit.JobTitle(),
-		Note: gofakeit.Sentence(30),
-		StaffID: staff,
-		UserID: user,
-	}
-	vr := infrastructure.NewVisitorRepository(dbInstance)
-	visitor, err := vr.AddVisitor(visitor)
-	assert.Nil(t, err)
-
-	return visitor
 }
