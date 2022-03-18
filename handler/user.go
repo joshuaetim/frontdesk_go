@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -62,13 +63,14 @@ func (uh UserHandler) SignInUser(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println("user id before token: ", dbUser.ID)
 	token, err := GenerateToken(dbUser.ID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not generate token: " + err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": dbUser, "token": token})
+	ctx.JSON(http.StatusOK, gin.H{"data": dbUser.PublicUser(), "token": token})
 }
 
 func (uh UserHandler) GetUser(ctx *gin.Context) {

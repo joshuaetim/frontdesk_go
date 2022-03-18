@@ -8,7 +8,7 @@ import (
 )
 
 type JsonReq struct {
-	Name	string	`json:"name"`
+	Name string `json:"name"`
 }
 
 func Ping(ctx *gin.Context) {
@@ -18,11 +18,16 @@ func Ping(ctx *gin.Context) {
 func JSONRequest(ctx *gin.Context) {
 	var req JsonReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, "bad request: "+ err.Error())
+		ctx.JSON(http.StatusBadRequest, "bad request: "+err.Error())
 		return
 	}
 	// fmt.Println(req.Name)
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": req.Name,
 	})
+}
+
+func CheckAuth(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
+	ctx.JSON(http.StatusOK, userID)
 }

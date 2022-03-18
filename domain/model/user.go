@@ -6,11 +6,11 @@ type User struct {
 	gorm.Model
 	Firstname string `json:"first_name"`
 	Lastname  string `json:"last_name"`
-	Email     string `json:"email" binding:"email" gorm:"unique"`
-	Password  string `json:"password"`
+	Email     string `json:"email" gorm:"unique"`
+	Password  string `json:"password,omitempty"`
 	Company   string `json:"company"`
-	Staff     []Staff
-	Visitors  []Visitor
+	// Staff     []Staff   `json:"staff,omitempty"`
+	// Visitors  []Visitor `json:"visitors,omitempty"`
 }
 
 func (u *User) PublicUser() *User {

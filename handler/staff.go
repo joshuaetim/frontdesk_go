@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,7 +15,7 @@ import (
 type StaffHandler interface {
 	GetStaff(*gin.Context)
 	CreateStaff(*gin.Context)
-	GetAllStaff(*gin.Context)
+	GetAllStaffByUser(*gin.Context)
 	UpdateStaff(*gin.Context)
 	DeleteStaff(*gin.Context)
 }
@@ -35,6 +36,9 @@ func (sh *staffHandler) CreateStaff(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "binding error: " + err.Error()})
 		return
 	}
+	userID := ctx.GetFloat64("userID")
+	staff.UserID = uint(userID)
+
 	// TODO: check for empty fields
 	staff, err := sh.repo.AddStaff(staff)
 	if err != nil {
@@ -45,6 +49,8 @@ func (sh *staffHandler) CreateStaff(ctx *gin.Context) {
 }
 
 func (sh *staffHandler) GetStaff(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
+	fmt.Println(userID)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "value error: " + err.Error()})
@@ -55,11 +61,12 @@ func (sh *staffHandler) GetStaff(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "trouble fetching staff: " + err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": staff})
+	ctx.JSON(http.StatusOK, gin.H{"data": staff.PublicStaff()})
 }
 
-func (sh *staffHandler) GetAllStaff(ctx *gin.Context) {
-	staff, err := sh.repo.GetAllStaff()
+func (sh *staffHandler) GetAllStaffByUser(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
+	staff, err := sh.repo.GetAllStaffByUser(uint(userID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem fetching user; " + err.Error()})
 		return

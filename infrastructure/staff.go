@@ -7,7 +7,7 @@ import (
 )
 
 type staffRepo struct {
-	db	*gorm.DB
+	db *gorm.DB
 }
 
 func NewStaffRepository(db *gorm.DB) repository.StaffRepository {
@@ -24,7 +24,7 @@ func (r *staffRepo) AddStaff(staff model.Staff) (model.Staff, error) {
 
 func (r *staffRepo) GetStaff(id uint) (model.Staff, error) {
 	var staff model.Staff
-	return staff, r.db.Joins("User").First(&staff, id).Error
+	return staff, r.db.First(&staff, id).Error
 }
 
 func (r *staffRepo) GetAllStaff() ([]model.Staff, error) {
@@ -49,4 +49,9 @@ func (r *staffRepo) DeleteStaff(staff model.Staff) error {
 		return err
 	}
 	return r.db.Delete(&staff).Error
+}
+
+func (r *staffRepo) GetAllStaffByUser(user uint) ([]model.Staff, error) {
+	var staff []model.Staff
+	return staff, r.db.Find(&staff, "user_id = ?", user).Error
 }
