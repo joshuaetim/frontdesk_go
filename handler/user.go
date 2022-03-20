@@ -14,17 +14,26 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserHandler struct {
+type UserHandler interface {
+	CreateUser(*gin.Context)
+	SignInUser(*gin.Context)
+	GetUser(*gin.Context)
+	UpdateUser(*gin.Context)
+	DeleteUser(*gin.Context)
+	GetStaff(*gin.Context)
+}
+
+type userHandler struct {
 	repo repository.UserRepository
 }
 
 func NewUserHandler(db *gorm.DB) UserHandler {
-	return UserHandler{
+	return &userHandler{
 		repo: infrastructure.NewUserRepository(db),
 	}
 }
 
-func (uh UserHandler) CreateUser(ctx *gin.Context) {
+func (uh *userHandler) CreateUser(ctx *gin.Context) {
 	var user model.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -44,7 +53,7 @@ func (uh UserHandler) CreateUser(ctx *gin.Context) {
 	})
 }
 
-func (uh UserHandler) SignInUser(ctx *gin.Context) {
+func (uh *userHandler) SignInUser(ctx *gin.Context) {
 	var user model.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -73,7 +82,7 @@ func (uh UserHandler) SignInUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": dbUser.PublicUser(), "token": token})
 }
 
-func (uh UserHandler) GetUser(ctx *gin.Context) {
+func (uh *userHandler) GetUser(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -91,30 +100,24 @@ func (uh UserHandler) GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": user.PublicUser()})
 }
 
-func (uh UserHandler) UpdateUser(ctx *gin.Context) {
+func (uh *userHandler) UpdateUser(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
 	var user model.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "binding error: please check your input data: " + err.Error()})
 		return
 	}
 
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id parameter: " + err.Error(),
-		})
-		return
-	}
-	user.ID = uint(id)
-	user, err = uh.repo.UpdateUser(user)
+	user.ID = uint(userID)
+	user, err := uh.repo.UpdateUser(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, gin.H{"data": user, "msg": "user updated"})
 }
 
-func (uh UserHandler) DeleteUser(ctx *gin.Context) {
+func (uh *userHandler) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -133,7 +136,7 @@ func (uh UserHandler) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"msg": "user deleted"})
 }
 
-func (uh UserHandler) GetStaff(ctx *gin.Context) {
+func (uh *userHandler) GetStaff(ctx *gin.Context) {
 
 }
 

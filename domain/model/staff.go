@@ -6,7 +6,7 @@ type Staff struct {
 	gorm.Model
 	Firstname string `json:"first_name"`
 	Lastname  string `json:"last_name"`
-	Email     string `json:"email" binding:"email" gorm:"unique"`
+	Email     string `json:"email" gorm:"unique"`
 	Phone     string `json:"phone"`
 	Address   string `json:"address"`
 	Status    string `json:"status"`

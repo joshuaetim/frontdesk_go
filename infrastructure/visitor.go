@@ -24,12 +24,27 @@ func (r *visitorRepo) AddVisitor(visitor model.Visitor) (model.Visitor, error) {
 
 func (r *visitorRepo) GetVisitor(id uint) (model.Visitor, error) {
 	var visitor model.Visitor
-	return visitor, r.db.Joins("User").Joins("Staff").First(&visitor, id).Error
+	return visitor, r.db.First(&visitor, id).Error
+}
+
+func (r *visitorRepo) GetUserVisitor(id, userid uint) (model.Visitor, error) {
+	var visitor model.Visitor
+	return visitor, r.db.First(&visitor, "id = ? AND user_id = ?", id, userid).Error
 }
 
 func (r *visitorRepo) GetAllVisitor() ([]model.Visitor, error) {
 	var visitors []model.Visitor
 	return visitors, r.db.Find(&visitors).Error
+}
+
+func (r *visitorRepo) GetAllUserVisitor(userid uint) ([]model.Visitor, error) {
+	var visitors []model.Visitor
+	return visitors, r.db.Find(&visitors, "user_id = ?", userid).Error
+}
+
+func (r *visitorRepo) GetAllUserAndStaffVisitor(user_id uint, staff_id uint) ([]model.Visitor, error) {
+	var visitors []model.Visitor
+	return visitors, r.db.Find(&visitors, "user_id = ? AND staff_id = ?", user_id, staff_id).Error
 }
 
 func (r *visitorRepo) UpdateVisitor(visitor model.Visitor) (model.Visitor, error) {

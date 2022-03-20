@@ -27,6 +27,12 @@ func (r *staffRepo) GetStaff(id uint) (model.Staff, error) {
 	return staff, r.db.First(&staff, id).Error
 }
 
+// get staff belonging to a specific user
+func (r *staffRepo) GetUserStaff(id, userid uint) (model.Staff, error) {
+	var staff model.Staff
+	return staff, r.db.First(&staff, "id = ? AND user_id = ?", id, userid).Error
+}
+
 func (r *staffRepo) GetAllStaff() ([]model.Staff, error) {
 	var staff []model.Staff
 	return staff, r.db.Find(&staff).Error

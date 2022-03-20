@@ -25,7 +25,6 @@ func TestVisitorSave(t *testing.T) {
 
 func TestVisitorGet(t *testing.T) {
 	initTest(t)
-	initTest(t)
 	db := infrastructure.DB()
 	user, err := factory.SeedUser(db)
 	assert.Nil(t, err)
@@ -40,14 +39,27 @@ func TestVisitorGet(t *testing.T) {
 	v, err := vr.GetVisitor(visitor.ID)
 	assert.Nil(t, err)
 	assert.EqualValues(t, visitor.ID, v.ID)
+}
 
-	// check for join preloading
-	assert.EqualValues(t, user.ID, v.User.ID)
-	assert.EqualValues(t, staff.ID, v.Staff.ID)
+func TestVisitorGetUserVisitor(t *testing.T) {
+	initTest(t)
+	db := infrastructure.DB()
+	user, err := factory.SeedUser(db)
+	assert.Nil(t, err)
+
+	staff, err := factory.SeedStaff(db, user.ID)
+	assert.Nil(t, err)
+
+	visitor, err := factory.SeedVisitor(db, user.ID, staff.ID)
+	assert.Nil(t, err)
+
+	vr := infrastructure.NewVisitorRepository(db)
+	v, err := vr.GetUserVisitor(visitor.ID, user.ID)
+	assert.Nil(t, err)
+	assert.EqualValues(t, visitor.ID, v.ID)
 }
 
 func TestVisitorGetAll(t *testing.T) {
-	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
 	user, err := factory.SeedUser(db)
@@ -72,7 +84,6 @@ func TestVisitorGetAll(t *testing.T) {
 
 func TestVisitorUpdate(t *testing.T) {
 	initTest(t)
-	initTest(t)
 	db := infrastructure.DB()
 	user, err := factory.SeedUser(db)
 	assert.Nil(t, err)
@@ -92,7 +103,6 @@ func TestVisitorUpdate(t *testing.T) {
 }
 
 func TestVisitorDelete(t *testing.T) {
-	initTest(t)
 	initTest(t)
 	db := infrastructure.DB()
 	user, err := factory.SeedUser(db)

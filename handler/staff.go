@@ -13,11 +13,11 @@ import (
 )
 
 type StaffHandler interface {
-	GetStaff(*gin.Context)
-	CreateStaff(*gin.Context)
+	GetUserStaff(*gin.Context)
+	CreateUserStaff(*gin.Context)
 	GetAllStaffByUser(*gin.Context)
-	UpdateStaff(*gin.Context)
-	DeleteStaff(*gin.Context)
+	UpdateUserStaff(*gin.Context)
+	DeleteUserStaff(*gin.Context)
 }
 
 type staffHandler struct {
@@ -30,7 +30,7 @@ func NewStaffHandler(db *gorm.DB) StaffHandler {
 	}
 }
 
-func (sh *staffHandler) CreateStaff(ctx *gin.Context) {
+func (sh *staffHandler) CreateUserStaff(ctx *gin.Context) {
 	var staff model.Staff
 	if err := ctx.ShouldBindJSON(&staff); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "binding error: " + err.Error()})
@@ -48,7 +48,7 @@ func (sh *staffHandler) CreateStaff(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": staff})
 }
 
-func (sh *staffHandler) GetStaff(ctx *gin.Context) {
+func (sh *staffHandler) GetUserStaff(ctx *gin.Context) {
 	userID := ctx.GetFloat64("userID")
 	fmt.Println(userID)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -56,7 +56,7 @@ func (sh *staffHandler) GetStaff(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "value error: " + err.Error()})
 		return
 	}
-	staff, err := sh.repo.GetStaff(uint(id))
+	staff, err := sh.repo.GetUserStaff(uint(id), uint(userID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "trouble fetching staff: " + err.Error()})
 		return
@@ -74,7 +74,8 @@ func (sh *staffHandler) GetAllStaffByUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": staff})
 }
 
-func (sh *staffHandler) UpdateStaff(ctx *gin.Context) {
+func (sh *staffHandler) UpdateUserStaff(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
 	staffID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "problem with input data: " + err.Error()})
@@ -86,29 +87,41 @@ func (sh *staffHandler) UpdateStaff(ctx *gin.Context) {
 		return
 	}
 	staff.ID = uint(staffID)
-	staff, err = sh.repo.UpdateStaff(staff)
+
+	// first confirm the user has the staff
+	_, err = sh.repo.GetUserStaff(uint(staffID), uint(userID))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem updating user; " + err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "trouble updating staff: " + err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": staff})
+
+	staff, err = sh.repo.UpdateStaff(staff)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem updating staff; " + err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": staff, "msg": "staff updated"})
 }
 
-func (sh *staffHandler) DeleteStaff(ctx *gin.Context) {
+func (sh *staffHandler) DeleteUserStaff(ctx *gin.Context) {
+	userID := ctx.GetFloat64("userID")
 	staffID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "problem with input data: " + err.Error()})
 		return
 	}
-	var staff model.Staff
-	if err := ctx.ShouldBindJSON(&staff); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// first confirm the user has the staff
+	_, err = sh.repo.GetUserStaff(uint(staffID), uint(userID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "trouble updating staff: " + err.Error()})
 		return
 	}
+
+	var staff model.Staff
 	staff.ID = uint(staffID)
 	err = sh.repo.DeleteStaff(staff)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem updating user; " + err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem deleting staff; " + err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": "staff deleted"})

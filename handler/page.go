@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joshuaetim/frontdesk/infrastructure"
 )
 
 type JsonReq struct {
@@ -29,5 +30,11 @@ func JSONRequest(ctx *gin.Context) {
 
 func CheckAuth(ctx *gin.Context) {
 	userID := ctx.GetFloat64("userID")
-	ctx.JSON(http.StatusOK, userID)
+	db := infrastructure.DB()
+	ur := infrastructure.NewUserRepository(db)
+	user, err := ur.GetUser(uint(userID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+	}
+	ctx.JSON(http.StatusOK, user.PublicUser())
 }
