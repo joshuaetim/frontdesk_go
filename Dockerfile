@@ -10,13 +10,17 @@ RUN go mod download
 
 COPY . .
 
-RUN /bin/bash -l -c "ls -a"
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -ldflags '-linkmode external -extldflags "-static"' .
+# RUN /bin/bash -l -c "ls -a"
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
+# -a -ldflags '-linkmode external -extldflags "-static"'
 
 FROM scratch
-COPY --from=builder /app/frontdesk /app/
-COPY --from=builder /app/.env /
+
+# RUN apk --no-cache add ca-certificates
+
+COPY --from=builder /app/frontdesk .
+COPY --from=builder /app/docker/.env .
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/frontdesk" ]
+ENTRYPOINT [ "/frontdesk" ]

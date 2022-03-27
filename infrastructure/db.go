@@ -1,10 +1,9 @@
 package infrastructure
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"runtime"
 
 	"github.com/joshuaetim/frontdesk/domain/model"
 	"gorm.io/driver/mysql"
@@ -12,23 +11,23 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
-)
-
 func DB() *gorm.DB {
 	var dialect gorm.Dialector
-	dsn := os.Getenv("DATABASE_URL")
+	var dsn string
 
-	if os.Getenv("APP_ENV") == "testing" {
+	switch os.Getenv("DB_DRIVER") {
+	case "sqlite":
+		dsn = os.Getenv("DATABASE_URL")
 		if mem := os.Getenv("SQLITE_MEMORY"); mem != "" {
 			dialect = sqlite.Open(mem)
 		} else {
 			dialect = sqlite.Open(dsn)
 		}
-	} else {
+	case "mysql":
+		dsn = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_DATABASE"))
 		dialect = mysql.Open(dsn)
+	default:
+		log.Fatalf("invalid driver: %s", os.Getenv("DB_DRIVER"))
 	}
 
 	db, err := gorm.Open(dialect, &gorm.Config{})
