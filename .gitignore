@@ -4,3 +4,5 @@ frontdesk.db
 docker-compose.yml
 dock.sh
 build_dock.sh
+Dockerfile
+.gitignore
