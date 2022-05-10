@@ -14,6 +14,7 @@ func RunAPI(address string) error {
 	userHandler := handler.NewUserHandler(db)
 	staffHandler := handler.NewStaffHandler(db)
 	visitorHandler := handler.NewVisitorHandler(db)
+	dashboardHandler := handler.NewDashboardHandler(db)
 
 	r := gin.Default()
 
@@ -46,6 +47,9 @@ func RunAPI(address string) error {
 	visitorRoutes.GET("/staff/:staffID", visitorHandler.GetAllStaffVisitors)
 	visitorRoutes.PUT("/:id", visitorHandler.UpdateUserVisitor)
 	visitorRoutes.DELETE("/:id", visitorHandler.DeleteUserVisitor)
+
+	dashboardRoutes := apiRoutes.Group("/dashboard", middleware.AuthorizeJWT())
+	dashboardRoutes.GET("/users/count", dashboardHandler.GetUsersCount)
 
 	return r.Run(address)
 }

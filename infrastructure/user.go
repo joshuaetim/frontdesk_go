@@ -7,7 +7,7 @@ import (
 )
 
 type userRepo struct {
-	db *gorm.DB 
+	db *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
@@ -35,6 +35,16 @@ func (r *userRepo) GetByEmail(email string) (model.User, error) {
 func (r *userRepo) GetAllUser() ([]model.User, error) {
 	var users []model.User
 	return users, r.db.Find(&users).Error
+}
+
+func (r *userRepo) CountUsers() int {
+	type Result struct {
+		Total int
+	}
+	var result Result
+	r.db.Raw("select count(*) as total from users").Scan(&result)
+
+	return result.Total
 }
 
 func (r *userRepo) UpdateUser(user model.User) (model.User, error) {

@@ -11,4 +11,5 @@ type UserRepository interface {
 	DeleteUser(model.User) error
 	GetUserStaff(uint) ([]model.Staff, error)
 	GetUserVisitors(uint) ([]model.Visitor, error)
+	CountUsers() int
 }
